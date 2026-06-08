@@ -1,7 +1,17 @@
 const fs = require('fs');
 const path = require('path');
 const Logger = require('../utils/logger');
-const config = require('../config.json');
+let config = {};
+   try {
+       config = require('../config.json');
+   } catch (e) {
+       config = {
+           token: process.env.DISCORD_TOKEN,
+           clientId: process.env.CLIENT_ID || "1513627285935231147",
+           guildId: process.env.GUILD_ID || "1513659339662163968",
+           prefix: "!"
+       };
+   }
 const { SakuraEmbed } = require('../utils/embedBuilder');
 const { Collection } = require('discord.js');
 
