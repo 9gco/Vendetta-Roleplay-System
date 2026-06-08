@@ -1,4 +1,7 @@
-const Database = require('quick.db');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
+
+module.exports = db;
 
 class DatabaseManager {
   static init() {

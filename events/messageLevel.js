@@ -1,5 +1,6 @@
-const Database = require('quick.db');
-const db = new Database.table('levels');
+const { QuickDB } = require('quick.db');
+const mainDb = new QuickDB();
+const db = mainDb.table('levels'); // Ohne das Wort "new" vor "Database.table"!
 const Logger = require('../utils/logger');
 
 module.exports = {
