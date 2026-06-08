@@ -1,3 +1,22 @@
+// Globale Kompatibilität für quick.db v9 erzwingen
+const { QuickDB } = require('quick.db');
+const globalDbInst = new QuickDB();
+
+// Wir mogeln der QuickDB-Klasse die .table-Methode als Konstruktor unter
+try {
+    const SqliteDriver = require('quick.db/out/drivers/SqliteDriver').SqliteDriver;
+    
+    // Wenn irgendwo "new Database.table()" aufgerufen wird, fangen wir es ab
+    Object.defineProperty(globalDbInst, 'table', {
+        get: function() {
+            return function(tableName) {
+                return globalDbInst.table(tableName);
+            };
+        }
+    });
+} catch (e) {
+    console.log("Konnte globalen DB-Patch nicht vollständig anwenden, fahre fort...");
+}
 const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js');
 let config = {};
    try {
