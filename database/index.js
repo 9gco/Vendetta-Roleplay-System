@@ -1,7 +1,23 @@
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
-module.exports = db;
+// Dieser Trick erlaubt es dem alten Code, weiterhin "new Database.table()" zu nutzen:
+db.table = function(tableName) {
+    return db.table(tableName); 
+};
+
+// Falls der Code "new" erzwingt, tricksen wir JavaScript aus:
+class DatabaseFake {
+    constructor() {}
+    table(name) {
+        return db.table(name);
+    }
+}
+
+// Wir exportieren ein Objekt, das sich wie die alte quick.db verhält
+const oldStyleDb = new DatabaseFake();
+
+module.exports = oldStyleDb;
 
 class DatabaseManager {
   static init() {
