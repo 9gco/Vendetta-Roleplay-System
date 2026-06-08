@@ -1,22 +1,29 @@
-// Globale Kompatibilität für quick.db v9 erzwingen
+// ================= GLOBALER QUICK.DB V9 CONSTRUCTOR PATCH =================
 const { QuickDB } = require('quick.db');
-const globalDbInst = new QuickDB();
 
-// Wir mogeln der QuickDB-Klasse die .table-Methode als Konstruktor unter
-try {
-    const SqliteDriver = require('quick.db/out/drivers/SqliteDriver').SqliteDriver;
-    
-    // Wenn irgendwo "new Database.table()" aufgerufen wird, fangen wir es ab
-    Object.defineProperty(globalDbInst, 'table', {
-        get: function() {
-            return function(tableName) {
-                return globalDbInst.table(tableName);
-            };
-        }
-    });
-} catch (e) {
-    console.log("Konnte globalen DB-Patch nicht vollständig anwenden, fahre fort...");
-}
+// Wir erstellen eine versteckte, globale Instanz für die Tabellen
+const globalDbInstance = new QuickDB();
+
+// Wir manipulieren den Prototyp von QuickDB, falls die Instanz selbst als Konstruktor genutzt wird
+QuickDB.prototype.table = function(tableName) {
+    return globalDbInstance.table(tableName);
+};
+
+// Falls der Code explizit versucht, "new (require('quick.db')).table()" zu nutzen:
+const originalRequire = module.constructor.prototype.require;
+module.constructor.prototype.require = function(path) {
+    const moduleExport = originalRequire.apply(this, arguments);
+    if (path === 'quick.db' && moduleExport.QuickDB) {
+        // Wir bauen eine gefakte 'table'-Klasse direkt auf dem Export-Objekt ein
+        moduleExport.table = class {
+            constructor(name) {
+                return globalDbInstance.table(name);
+            }
+        };
+    }
+    return moduleExport;
+};
+// ===========================================================================
 const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js');
 let config = {};
    try {
