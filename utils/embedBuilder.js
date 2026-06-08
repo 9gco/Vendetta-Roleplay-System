@@ -1,5 +1,24 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const config = require('../config.json');
+let config = {};
+   try {
+       config = require('../config.json');
+   } catch (e) {
+       config = {
+           token: process.env.DISCORD_TOKEN,
+           clientId: process.env.CLIENT_ID || "1513627285935231147",
+           guildId: process.env.GUILD_ID || "1513659339662163968",
+           prefix: "!",
+           colors: {
+               primary: "#FFB7C5",
+               secondary: "#FF69B4",
+               accent: "#FF1493",
+               dark: "#2A1B2E",
+               success: "#77DD77",
+               error: "#FF6B6B",
+               warning: "#FFD700"
+           }
+       };
+   }
 
 class SakuraEmbed {
   static base() {
