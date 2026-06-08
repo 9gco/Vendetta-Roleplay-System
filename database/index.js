@@ -1,23 +1,21 @@
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
-// Dieser Trick erlaubt es dem alten Code, weiterhin "new Database.table()" zu nutzen:
-db.table = function(tableName) {
-    return db.table(tableName); 
-};
-
-// Falls der Code "new" erzwingt, tricksen wir JavaScript aus:
-class DatabaseFake {
-    constructor() {}
-    table(name) {
-        return db.table(name);
+// Wir bauen eine waschechte Faker-Klasse, die das "new"-Schlüsselwort akzeptiert
+class TableFake {
+    constructor(tableName) {
+        // Gibt eine echte QuickDB-Tabelle zurück
+        return db.table(tableName);
     }
 }
 
-// Wir exportieren ein Objekt, das sich wie die alte quick.db verhält
-const oldStyleDb = new DatabaseFake();
+// Das Hauptobjekt, das dein Bot importiert
+const DatabaseFake = {
+    table: TableFake // 'table' ist jetzt ein Constructor, 'new Database.table()' klappt!
+};
 
-module.exports = oldStyleDb;
+module.exports = DatabaseFake;
+
 
 class DatabaseManager {
   static init() {
