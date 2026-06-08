@@ -1,5 +1,16 @@
 const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js');
-const config = require('./config.json');
+let config = {};
+   try {
+       config = require('./config.json');
+   } catch (e) {
+       // Wenn die Datei auf Render fehlt, nutzen wir die Umgebungsvariablen
+       config = {
+           token: process.env.DISCORD_TOKEN,
+           clientId: process.env.CLIENT_ID || "1513627285935231147",
+           guildId: process.env.GUILD_ID || "1513659339662163968",
+           prefix: "!"
+       };
+   }
 const Logger = require('./utils/logger');
 const EventHandler = require('./handlers/eventHandler');
 const CommandHandler = require('./handlers/commandHandler');
