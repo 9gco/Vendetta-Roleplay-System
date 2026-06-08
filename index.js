@@ -1,23 +1,23 @@
 // ================= GLOBALER QUICK.DB V9 CONSTRUCTOR PATCH =================
 const { QuickDB } = require('quick.db');
 
-// Wir erstellen eine versteckte, globale Instanz für die Tabellen
+// Wir merken uns die ECHTE originale Tabellen-Funktion von QuickDB
+const originalTableMethod = QuickDB.prototype.table;
+
+// Wir erstellen eine zentrale, globale Instanz
 const globalDbInstance = new QuickDB();
 
-// Wir manipulieren den Prototyp von QuickDB, falls die Instanz selbst als Konstruktor genutzt wird
-QuickDB.prototype.table = function(tableName) {
-    return globalDbInstance.table(tableName);
-};
-
-// Falls der Code explizit versucht, "new (require('quick.db')).table()" zu nutzen:
+// Falls irgendwo versucht wird, "new (require('quick.db')).table()" zu nutzen:
 const originalRequire = module.constructor.prototype.require;
 module.constructor.prototype.require = function(path) {
     const moduleExport = originalRequire.apply(this, arguments);
-    if (path === 'quick.db' && moduleExport.QuickDB) {
-        // Wir bauen eine gefakte 'table'-Klasse direkt auf dem Export-Objekt ein
+    
+    if (path === 'quick.db') {
+        // Wir hängen eine gefakte Klasse ein, die das 'new'-Schlüsselwort abfängt
         moduleExport.table = class {
-            constructor(name) {
-                return globalDbInstance.table(name);
+            constructor(tableName) {
+                // Hier rufen wir die ORIGINALE Methode auf der globalen Instanz auf (keine Endlosschleife!)
+                return originalTableMethod.call(globalDbInstance, tableName);
             }
         };
     }
