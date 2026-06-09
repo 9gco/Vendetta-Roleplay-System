@@ -1,17 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const Logger = require('../utils/logger');
-let config = {};
-try {
-    config = require('../config.json');
-} catch (e) {
-    config = {
-        token: process.env.DISCORD_TOKEN,
-        clientId: process.env.CLIENT_ID || "1513627285935231147",
-        guildId: process.env.GUILD_ID || "1513659339662163968",
-        prefix: "!"
-    };
-}
+const config = require('../config.json');
 const { SakuraEmbed } = require('../utils/embedBuilder');
 const { Collection } = require('discord.js');
 
@@ -56,7 +46,7 @@ class CommandHandler {
       }
     }
 
-    Logger.success(`${client.slashCommands.size} Befehle erfolgreich geladen 🌸`);
+    Logger.success(`${client.slashCommands.size} Befehle erfolgreich geladen ${'🌸'}`);
   }
 
   static async handlePrefix(message, client) {
@@ -75,7 +65,7 @@ class CommandHandler {
       });
     }
 
-    if (command.ownerOnly && config.owners && !config.owners.includes(message.author.id)) {
+    if (command.ownerOnly && !config.owners.includes(message.author.id)) {
       return message.reply({
         embeds: [SakuraEmbed.error('Kein Zugriff', 'Dieser Befehl ist nur für Bot-Besitzer verfügbar.')]
       });
@@ -87,7 +77,7 @@ class CommandHandler {
       Logger.error(`Fehler bei ${commandName}: ${error.message}`);
       message.reply({
         embeds: [SakuraEmbed.error('Befehlsfehler', 'Ein Fehler ist aufgetreten. Bitte versuche es später erneut.')]
-      }).catch(() => {});
+      });
     }
   }
 
@@ -95,7 +85,7 @@ class CommandHandler {
     const command = client.slashCommands.get(interaction.commandName);
     if (!command) return;
 
-    if (command.ownerOnly && config.owners && !config.owners.includes(interaction.user.id)) {
+    if (command.ownerOnly && !config.owners.includes(interaction.user.id)) {
       return interaction.reply({
         embeds: [SakuraEmbed.error('Kein Zugriff', 'Dieser Befehl ist nur für Bot-Besitzer verfügbar.')],
         ephemeral: true
@@ -103,17 +93,14 @@ class CommandHandler {
     }
 
     try {
-      // Führt den Befehl aus
       await command.execute(interaction, client);
     } catch (error) {
       Logger.error(`Fehler bei /${interaction.commandName}: ${error.message}`);
       const embed = SakuraEmbed.error('Befehlsfehler', 'Ein Fehler ist aufgetreten. Bitte versuche es später erneut.');
-      
-      // Fehler-Antwort absichern, falls bereits reagiert wurde
       if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({ embeds: [embed], ephemeral: true }).catch(() => {});
+        await interaction.followUp({ embeds: [embed], ephemeral: true });
       } else {
-        await interaction.reply({ embeds: [embed], ephemeral: true }).catch(() => {});
+        await interaction.reply({ embeds: [embed], ephemeral: true });
       }
     }
   }

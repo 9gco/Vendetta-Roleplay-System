@@ -29,9 +29,8 @@ module.exports = {
     }
 
     try {
-      if (interaction.guild.members.me.voice.channel) {
-        interaction.guild.members.me.voice.disconnect();
-      }
+      client.music.stop(interaction.guild.id);
+      client.music.leave(interaction.guild.id);
       await interaction.reply({
         embeds: [SakuraEmbed.success('Gestoppt', `${config.emojis.music} Wiedergabe gestoppt und Channel verlassen.`)],
       });

@@ -3,13 +3,13 @@ const { SakuraEmbed } = require('../../utils/embedBuilder');
 const config = require('../../config.json');
 
 module.exports = {
-  name: 'skip',
-  description: 'Überspringe den aktuellen Song',
-  aliases: ['next', 's'],
+  name: 'pause',
+  description: 'Pausiere die aktuelle Wiedergabe',
+  aliases: ['hold'],
   category: 'music',
   data: new SlashCommandBuilder()
-    .setName('skip')
-    .setDescription('Überspringe den aktuellen Song'),
+    .setName('pause')
+    .setDescription('Pausiere die aktuelle Wiedergabe'),
 
   async execute(interaction, client) {
     const voiceChannel = interaction.member.voice.channel;
@@ -29,11 +29,10 @@ module.exports = {
       });
     }
 
-    const skipped = queue.currentSong;
-    client.music.skip(interaction.guild.id);
+    client.music.pause(interaction.guild.id);
 
     await interaction.reply({
-      embeds: [SakuraEmbed.info('Song übersprungen', `${config.emojis.music} **${skipped.title}** wurde übersprungen.`)],
+      embeds: [SakuraEmbed.info('Pausiert', `${config.emojis.music} Die Wiedergabe wurde pausiert.`)],
     });
   }
 };

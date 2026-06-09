@@ -3,13 +3,13 @@ const { SakuraEmbed } = require('../../utils/embedBuilder');
 const config = require('../../config.json');
 
 module.exports = {
-  name: 'skip',
-  description: 'Überspringe den aktuellen Song',
-  aliases: ['next', 's'],
+  name: 'shuffle',
+  description: 'Mische die Warteschlange',
+  aliases: ['mix', 'random'],
   category: 'music',
   data: new SlashCommandBuilder()
-    .setName('skip')
-    .setDescription('Überspringe den aktuellen Song'),
+    .setName('shuffle')
+    .setDescription('Mische die Warteschlange'),
 
   async execute(interaction, client) {
     const voiceChannel = interaction.member.voice.channel;
@@ -22,18 +22,17 @@ module.exports = {
     }
 
     const queue = client.music.getQueue(interaction.guild.id);
-    if (!queue.playing || !queue.currentSong) {
+    if (queue.songs.length < 2) {
       return interaction.reply({
-        embeds: [SakuraEmbed.error('Keine Wiedergabe', 'Es wird gerade keine Musik abgespielt.')],
+        embeds: [SakuraEmbed.error('Zu wenig Songs', 'Es müssen mindestens 2 Songs in der Warteschlange sein.')],
         ephemeral: true
       });
     }
 
-    const skipped = queue.currentSong;
-    client.music.skip(interaction.guild.id);
+    client.music.shuffle(interaction.guild.id);
 
     await interaction.reply({
-      embeds: [SakuraEmbed.info('Song übersprungen', `${config.emojis.music} **${skipped.title}** wurde übersprungen.`)],
+      embeds: [SakuraEmbed.success('Gemischt', `${config.emojis.music} Die Warteschlange wurde gemischt.`)],
     });
   }
 };

@@ -1,21 +1,4 @@
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
-
-// Wir bauen eine waschechte Faker-Klasse, die das "new"-Schlüsselwort akzeptiert
-class TableFake {
-    constructor(tableName) {
-        // Gibt eine echte QuickDB-Tabelle zurück
-        return db.table(tableName);
-    }
-}
-
-// Das Hauptobjekt, das dein Bot importiert
-const DatabaseFake = {
-    table: TableFake // 'table' ist jetzt ein Constructor, 'new Database.table()' klappt!
-};
-
-module.exports = DatabaseFake;
-
+const Database = require('quick.db');
 
 class DatabaseManager {
   static init() {

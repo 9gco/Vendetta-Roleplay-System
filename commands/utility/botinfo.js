@@ -1,34 +1,78 @@
-const { SlashCommandBuilder, EmbedBuilder, version } = require('discord.js');
-const os = require('os');
+const { SlashCommandBuilder, version } = require('discord.js');
+const { SakuraEmbed } = require('../../utils/embedBuilder');
+const config = require('../../config.json');
+const moment = require('moment');
 
 module.exports = {
-    name: 'botinfo',
-    description: 'Zeigt Statistiken über den Bot an. 🌸',
-    data: new SlashCommandBuilder()
-        .setName('botinfo')
-        .setDescription('Zeigt Statistiken über den Bot an. 🌸'),
+  name: 'botinfo',
+  description: 'Zeigt Informationen über den Bot',
+  aliases: ['bot', 'stats', 'info'],
+  category: 'utility',
+  data: new SlashCommandBuilder()
+    .setName('botinfo')
+    .setDescription('Zeigt Informationen über den Bot'),
 
-    async execute(interaction, client) {
-        const uptime = process.uptime();
-        const days = Math.floor(uptime / 86400);
-        const hours = Math.floor((uptime % 86400) / 3600);
-        const minutes = Math.floor((uptime % 3600) / 60);
-        const uptimeString = `${days}d ${hours}h ${minutes}m`;
+  async execute(interaction, client) {
+    const uptime = moment.duration(client.uptime);
+    const uptimeStr = `${uptime.days()}d ${uptime.hours()}h ${uptime.minutes()}m ${uptime.seconds()}s`;
 
-        const memory = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2);
+    const totalUsers = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
+    const totalChannels = client.guilds.cache.reduce((acc, guild) => acc + guild.channels.cache.size, 0);
 
-        const embed = new EmbedBuilder()
-            .setTitle('🌸 Vendetta System - Info')
-            .setColor('#FFB7C5')
-            .addFields(
-                { name: '🤖 Bot', value: `${client.user.username}`, inline: true },
-                { name: '🟢 Uptime', value: `\`${uptimeString}\``, inline: true },
-                { name: '💾 RAM', value: `\`${memory} MB\``, inline: true },
-                { name: '👥 Server', value: `${client.guilds.cache.size}`, inline: true },
-                { name: '⚙️ Library', value: `Discord.js v${version}`, inline: true }
-            )
-            .setTimestamp();
+    const embed = SakuraEmbed.custom({
+      title: `${config.emojis.sakura} ${client.user.username} – Bot Info`,
+      color: config.colors.primary,
+      thumbnail: client.user.displayAvatarURL({ dynamic: true, size: 512 }),
+      fields: [
+        {
+          name: `${config.emojis.crown} Entwickler`,
+          value: config.owners.map(id => `<@${id}>`).join(', '),
+          inline: true,
+        },
+        {
+          name: `${config.emojis.star} Version`,
+          value: 'v3.0.0',
+          inline: true,
+        },
+        {
+          name: `${config.emojis.heart} Discord.js`,
+          value: `v${version}`,
+          inline: true,
+        },
+        {
+          name: `${config.emojis.leaf} Server`,
+          value: `${client.guilds.cache.size}`,
+          inline: true,
+        },
+        {
+          name: `${config.emojis.ribbon} Benutzer`,
+          value: `${totalUsers}`,
+          inline: true,
+        },
+        {
+          name: `${config.emojis.rose} Kanäle`,
+          value: `${totalChannels}`,
+          inline: true,
+        },
+        {
+          name: `${config.emojis.shield} Befehle`,
+          value: `${client.slashCommands.size}`,
+          inline: true,
+        },
+        {
+          name: `${config.emojis.loading} Betriebszeit`,
+          value: uptimeStr,
+          inline: true,
+        },
+        {
+          name: `${config.emojis.settings} Ping`,
+          value: `${Math.round(client.ws.ping)}ms`,
+          inline: true,
+        },
+      ],
+      footer: { text: `Gestartet am ${moment(client.readyAt).format('DD.MM.YYYY [um] HH:mm')}`, iconURL: client.user.displayAvatarURL({ dynamic: true }) },
+    });
 
-        return await interaction.reply({ embeds: [embed] });
-    }
+    await interaction.reply({ embeds: [embed] });
+  }
 };
