@@ -6,7 +6,6 @@ module.exports = {
         .setDescription('Zeigt eine Liste aller verfügbaren Befehle an. 🌸'),
 
     async execute(interaction, client) {
-        // Wir holen die Farben aus der Config, falls vorhanden, sonst Standard-Rosa
         const embedColor = client.config?.colors?.sakura || '#FFB7C5';
 
         const embed = new EmbedBuilder()
@@ -18,7 +17,7 @@ module.exports = {
                 '• `/ticket close` - Schließt ein Ticket\n\n' +
                 '**🛡️ Moderation:**\n' +
                 '• `/warn` - Verwarnt einen User\n\n' +
-                '💡 *Tippe einfach ein `/` in den Chat, um alle weiteren Befehle und deren Beschreibungen live zu sehen!*'
+                '💡 *Tippe einfach ein `/` in den Chat, um alle weiteren Befehle live zu sehen!*'
             )
             .setColor(embedColor)
             .setFooter({ 
@@ -27,12 +26,11 @@ module.exports = {
             })
             .setTimestamp();
 
-        // Überprüfen, ob es ein Slash-Command (Interaction) oder ein Text-Befehl ist
+        // Prüfen, ob es ein Slash-Command oder ein Text-Befehl (!help) ist
         if (interaction.reply) {
-            await interaction.reply({ embeds: [embed], ephemeral: true });
-        } else if (interaction.channel) {
-            // Fallback für alte Präfix-Befehle (!help)
-            await interaction.channel.send({ embeds: [embed] });
+            return await interaction.reply({ embeds: [embed], ephemeral: true });
+        } else {
+            return await interaction.channel.send({ embeds: [embed] });
         }
     }
 };
