@@ -30,7 +30,7 @@ module.exports = {
             .addFields(
                 { name: '🌸 Bot-Name', value: `${client.user.tag}`, inline: true },
                 { name: '🆔 Bot-ID', value: `${client.user.id}`, inline: true },
-                { name: '👑 Entwickler', value: 'Vendetta Team', inline: true },
+                { name: '👑 Entwickler', value: 'Vendetta Roleplay Team', inline: true },
                 
                 { name: '📊 Statistiken', value: `• **Server:** ${client.guilds.cache.size}\n• **Nutzer:** ${client.users.cache.size}\n• **Befehle:** ${client.commands.size}`, inline: false },
                 
