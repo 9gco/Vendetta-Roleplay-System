@@ -1,78 +1,54 @@
-const { SlashCommandBuilder, version } = require('discord.js');
-const { SakuraEmbed } = require('../../utils/embedBuilder');
-const config = require('../../config.json');
-const moment = require('moment');
+const { SlashCommandBuilder, EmbedBuilder, version } = require('discord.js');
+const os = require('os');
 
 module.exports = {
-  name: 'botinfo',
-  description: 'Zeigt Informationen über den Bot',
-  aliases: ['bot', 'stats', 'info'],
-  category: 'utility',
-  data: new SlashCommandBuilder()
-    .setName('botinfo')
-    .setDescription('Zeigt Informationen über den Bot'),
+    name: 'botinfo',
+    description: 'Zeigt detaillierte Informationen und Statistiken über den Bot an. 🌸',
+    data: new SlashCommandBuilder()
+        .setName('botinfo')
+        .setDescription('Zeigt detaillierte Informationen und Statistiken über den Bot an. 🌸'),
 
-  async execute(interaction, client) {
-    const uptime = moment.duration(client.uptime);
-    const uptimeStr = `${uptime.days()}d ${uptime.hours()}h ${uptime.minutes()}m ${uptime.seconds()}s`;
+    async execute(interaction, client) {
+        // Berechne die Uptime des Bots
+        const totalSeconds = (client.uptime / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = Math.floor(totalSeconds % 60);
+        const uptimeString = `${days}t ${hours}std ${minutes}min ${seconds}sek`;
 
-    const totalUsers = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
-    const totalChannels = client.guilds.cache.reduce((acc, guild) => acc + guild.channels.cache.size, 0);
+        // RAM-Nutzung auslesen
+        const memoryUsage = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2);
+        
+        // Farbe aus Config oder Standard-Rosa
+        const embedColor = client.config?.colors?.sakura || '#FFB7C5';
 
-    const embed = SakuraEmbed.custom({
-      title: `${config.emojis.sakura} ${client.user.username} – Bot Info`,
-      color: config.colors.primary,
-      thumbnail: client.user.displayAvatarURL({ dynamic: true, size: 512 }),
-      fields: [
-        {
-          name: `${config.emojis.crown} Entwickler`,
-          value: config.owners.map(id => `<@${id}>`).join(', '),
-          inline: true,
-        },
-        {
-          name: `${config.emojis.star} Version`,
-          value: 'v3.0.0',
-          inline: true,
-        },
-        {
-          name: `${config.emojis.heart} Discord.js`,
-          value: `v${version}`,
-          inline: true,
-        },
-        {
-          name: `${config.emojis.leaf} Server`,
-          value: `${client.guilds.cache.size}`,
-          inline: true,
-        },
-        {
-          name: `${config.emojis.ribbon} Benutzer`,
-          value: `${totalUsers}`,
-          inline: true,
-        },
-        {
-          name: `${config.emojis.rose} Kanäle`,
-          value: `${totalChannels}`,
-          inline: true,
-        },
-        {
-          name: `${config.emojis.shield} Befehle`,
-          value: `${client.slashCommands.size}`,
-          inline: true,
-        },
-        {
-          name: `${config.emojis.loading} Betriebszeit`,
-          value: uptimeStr,
-          inline: true,
-        },
-        {
-          name: `${config.emojis.settings} Ping`,
-          value: `${Math.round(client.ws.ping)}ms`,
-          inline: true,
-        },
-      ],
-      footer: { text: `Gestartet am ${moment(client.readyAt).format('DD.MM.YYYY [um] HH:mm')}`, iconURL: client.user.displayAvatarURL({ dynamic: true }) },
-    });
+        const embed = new EmbedBuilder()
+            .setTitle('🤖 Bot-Statistiken & Informationen')
+            .setColor(embedColor)
+            .setDescription('Hier findest du alle aktuellen technischen Details zum Vendetta System:')
+            .addFields(
+                { name: '🌸 Bot-Name', value: `${client.user.tag}`, inline: true },
+                { name: '🆔 Bot-ID', value: `${client.user.id}`, inline: true },
+                { name: '👑 Entwickler', value: 'Vendetta Team', inline: true },
+                
+                { name: '📊 Statistiken', value: `• **Server:** ${client.guilds.cache.size}\n• **Nutzer:** ${client.users.cache.size}\n• **Befehle:** ${client.commands.size}`, inline: false },
+                
+                { name: '⚙️ Technische Details', value: `• **Node.js Version:** ${process.version}\n• **Discord.js Version:** v${version}\n• **RAM-Verbrauch:** ${memoryUsage} MB\n• **Plattform:** ${os.platform()}`, inline: false },
+                
+                { name: '⏱️ Online seit', value: `\`${uptimeString}\``, inline: false }
+            )
+            .setFooter({ 
+                text: `Angeforderte Infos von ${interaction.user.tag}`, 
+                iconURL: interaction.user.displayAvatarURL({ dynamic: true }) 
+            })
+            .setTimestamp();
 
-    await interaction.reply({ embeds: [embed] });
-  }
+        // Absichern der Antwort
+        if (interaction.reply) {
+            await interaction.reply({ embeds: [embed], ephemeral: false });
+        } else {
+            await interaction.channel.send({ embeds: [embed] });
+        }
+    }
 };
