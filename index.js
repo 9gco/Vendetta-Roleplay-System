@@ -66,6 +66,7 @@ EventHandler.load(client);
 CommandHandler.load(client);
 
 // Sobald der Bot eingeloggt ist, registrieren wir NUR die echten geladenen Befehle
+// Sobald der Bot eingeloggt ist, registrieren wir NUR die echten geladenen Befehle
 client.once('ready', async () => {
     try {
         Logger.info('Starte die Registrierung der Slash-Commands bei Discord...');
@@ -73,11 +74,14 @@ client.once('ready', async () => {
         const rest = new REST({ version: '10' }).setToken(finalToken);
         const commandsJson = [];
 
-        // HIER STEHT JETZT NUR NOCH DIE ABFRAGE DER GELADENEN BEFEHLE
+        // Wir nutzen radikal NUR das, was in client.commands (die 19 Stück) existiert!
         if (client.commands && client.commands.size > 0) {
             client.commands.forEach(cmd => {
                 if (cmd.data && typeof cmd.data.toJSON === 'function') {
-                    commandsJson.push(cmd.data.toJSON());
+                    // Verhindert doppelte Einträge in der Liste
+                    if (!commandsJson.some(c => c.name === cmd.data.name)) {
+                        commandsJson.push(cmd.data.toJSON());
+                    }
                 }
             });
         }
@@ -91,7 +95,7 @@ client.once('ready', async () => {
             );
             Logger.success('🌸 ALLE BEFEHLE ERFOLGREICH BEI DISCORD REGISTRIERT! 🌸');
         } else {
-            Logger.warn('Keine Befehle im client.commands-Speicher gefunden.');
+            Logger.warn('Keine gültigen Befehle im client.commands-Speicher gefunden.');
         }
     } catch (error) {
         Logger.error(`Fehler beim Registrieren der Befehle: ${error.message}`);
