@@ -1,45 +1,35 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const { SakuraEmbed } = require('../../utils/embedBuilder');
-const config = require('../../config.json');
+const { useMainPlayer } = require('discord-player');
 
 module.exports = {
   name: 'play',
-  description: 'Spiele einen Song oder eine Playlist ab',
-  aliases: ['p', 'music', 'song'],
-  category: 'music',
+  description: 'Spiele einen Song ab',
   data: new SlashCommandBuilder()
     .setName('play')
-    .setDescription('Spiele einen Song oder eine Playlist ab')
-    .addStringOption(option =>
-      option.setName('song')
-        .setDescription('Songname oder YouTube/Spotify URL')
-        .setRequired(true)),
+    .setDescription('Spiele einen Song ab')
+    .addStringOption(option => option.setName('song').setDescription('Titel oder Link').setRequired(true)),
 
-  async execute(interaction, client) {
+  async execute(interaction) {
+    const player = useMainPlayer();
     const song = interaction.options.getString('song');
-    const voiceChannel = interaction.member.voice.channel;
+    const channel = interaction.member.voice.channel;
 
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [SakuraEmbed.error('Kein Voice-Channel', 'Du musst in einem Voice-Channel sein, um Musik abzuspielen.')],
-        ephemeral: true
+    if (!channel) return interaction.reply({ content: 'Du musst in einem Voice-Channel sein!', ephemeral: true });
+
+    // Sofort antworten, damit keine "Unknown interaction" Fehler kommen
+    await interaction.deferReply();
+
+    try {
+      const { track } = await player.play(channel, song, {
+        nodeOptions: {
+          metadata: interaction // Damit wir später auf das Channel-Objekt zugreifen können
+        }
       });
+
+      return interaction.editReply({ content: `🎵 Läuft jetzt: **${track.title}**` });
+    } catch (e) {
+      console.error(e);
+      return interaction.editReply({ content: '❌ Fehler beim Abspielen des Songs.' });
     }
-
-    const permissions = voiceChannel.permissionsFor(client.user);
-    if (!permissions.has(PermissionFlagsBits.Connect) || !permissions.has(PermissionFlagsBits.Speak)) {
-      return interaction.reply({
-        embeds: [SakuraEmbed.error('Fehlende Berechtigungen', 'Ich habe keine Berechtigung, diesem Voice-Channel beizutreten oder zu sprechen.')],
-        ephemeral: true
-      });
-    }
-
-    const embed = SakuraEmbed.custom({
-      title: `${config.emojis.music} Musik wird geladen...`,
-      description: `${config.emojis.loading} Suche nach: \`${song}\`\n\n${config.emojis.leaf} *Installiere hierfür das Paket \`discord-player\` oder \`play-dl\`*`,
-      color: config.colors.secondary,
-    });
-
-    await interaction.reply({ embeds: [embed] });
   }
 };

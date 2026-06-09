@@ -7,6 +7,14 @@ http.createServer((req, res) => {
 }).listen(process.env.PORT || 3000);
 
 // ... der Rest deines Codes ...
+const { Player } = require('discord-player');
+const player = new Player(client);
+
+// Wichtig: Die Extractor-Plugins laden, damit er YouTube/Spotify versteht
+async function initPlayer() {
+  await player.extractors.loadDefault();
+}
+initPlayer();
 const { QuickDB } = require('quick.db');
 const originalTableMethod = QuickDB.prototype.table;
 const globalDbInstance = new QuickDB();
