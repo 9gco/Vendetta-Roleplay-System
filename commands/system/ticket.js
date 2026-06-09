@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { SakuraEmbed, SakuraButtons } = require('../../utils/embedBuilder');
 
-// Wir laden die gefakte Config, die wir auf Render erzeugen, oder die lokale Datei
 let config = {};
 try {
     config = require('../../config.json');
@@ -31,13 +30,6 @@ module.exports = {
         const subcommand = interaction.options.getSubcommand();
 
         if (subcommand === 'panel') {
-            if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-                return interaction.reply({
-                    embeds: [SakuraEmbed.error('Keine Berechtigung', 'Nur Admins können das Ticket-Panel erstellen.')],
-                    ephemeral: true
-                });
-            }
-
             const embed = SakuraEmbed.panel(
                 'Support-Ticket erstellen',
                 `${config.emojis?.ribbon || '🎀'} Brauchst du Hilfe? Erstelle ein Ticket und unser Team wird sich um dich kümmern!\n\n` +

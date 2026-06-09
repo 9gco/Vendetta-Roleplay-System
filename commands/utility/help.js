@@ -1,79 +1,38 @@
-const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
-const { SakuraEmbed } = require('../../utils/embedBuilder');
-const config = require('../../config.json');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
-  name: 'help',
-  description: 'Zeigt alle verfügbaren Befehle',
-  aliases: ['cmds', 'commands', 'hilfe'],
-  category: 'utility',
-  data: new SlashCommandBuilder()
-    .setName('help')
-    .setDescription('Zeigt alle verfügbaren Befehle')
-    .addStringOption(option =>
-      option.setName('befehl')
-        .setDescription('Zeige Hilfe zu einem bestimmten Befehl')
-        .setRequired(false)),
+    data: new SlashCommandBuilder()
+        .setName('help')
+        .setDescription('Zeigt eine Liste aller verfügbaren Befehle an. 🌸'),
 
-  async execute(interaction, client) {
-    const commandName = interaction.options.getString('befehl');
+    async execute(interaction, client) {
+        // Wir holen die Farben aus der Config, falls vorhanden, sonst Standard-Rosa
+        const embedColor = client.config?.colors?.sakura || '#FFB7C5';
 
-    if (commandName) {
-      const command = client.slashCommands.get(commandName.toLowerCase());
-      if (!command) {
-        return interaction.reply({
-          embeds: [SakuraEmbed.error('Nicht gefunden', `Der Befehl \`${commandName}\` existiert nicht.`)],
-          ephemeral: true
-        });
-      }
+        const embed = new EmbedBuilder()
+            .setTitle('🌸 Vendetta Roleplay - Hilfemenü')
+            .setDescription(
+                'Willkommen beim Vendetta System! Hier ist eine Übersicht deiner Möglichkeiten:\n\n' +
+                '**🎫 Ticketsystem:**\n' +
+                '• `/ticket panel` - Erstellt das Support-Panel\n' +
+                '• `/ticket close` - Schließt ein Ticket\n\n' +
+                '**🛡️ Moderation:**\n' +
+                '• `/warn` - Verwarnt einen User\n\n' +
+                '💡 *Tippe einfach ein `/` in den Chat, um alle weiteren Befehle und deren Beschreibungen live zu sehen!*'
+            )
+            .setColor(embedColor)
+            .setFooter({ 
+                text: `Vendetta System • Version 1.0`, 
+                iconURL: client.user.displayAvatarURL() 
+            })
+            .setTimestamp();
 
-      const embed = SakuraEmbed.custom({
-        title: `${config.emojis.ribbon} Hilfe: /${command.name}`,
-        color: config.colors.primary,
-        fields: [
-          { name: 'Beschreibung', value: command.description || 'Keine Beschreibung', inline: false },
-          { name: 'Kategorie', value: `\`${command.category}\``, inline: true },
-          { name: 'Aliase', value: command.aliases ? command.aliases.map(a => `\`${a}\``).join(', ') : 'Keine', inline: true },
-        ],
-      });
-
-      return interaction.reply({ embeds: [embed] });
+        // Überprüfen, ob es ein Slash-Command (Interaction) oder ein Text-Befehl ist
+        if (interaction.reply) {
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+        } else if (interaction.channel) {
+            // Fallback für alte Präfix-Befehle (!help)
+            await interaction.channel.send({ embeds: [embed] });
+        }
     }
-
-    const categories = {
-      moderation: `${config.emojis.shield} Moderation`,
-      fun: `${config.emojis.star} Spaß`,
-      utility: `${config.emojis.settings} Utility`,
-      music: `${config.emojis.music} Musik`,
-      system: `${config.emojis.crown} System`,
-    };
-
-    const embed = SakuraEmbed.custom({
-      title: `${config.emojis.sakura} Vendetta System – Hilfezentrum`,
-      description: `Willkommen im Hilfezentrum! Wähle eine Kategorie aus dem Menü unten aus.\n\n${config.emojis.ribbon} Prefix: \`${config.prefix}\`\n${config.emojis.leaf} Gesamt: \`${client.slashCommands.size}\` Befehle`,
-      color: config.colors.primary,
-      fields: Object.entries(categories).map(([key, value]) => ({
-        name: value,
-        value: client.slashCommands.filter(cmd => cmd.category === key).map(cmd => `\`/${cmd.name}\``).join(', ') || 'Keine Befehle',
-        inline: false,
-      })),
-      thumbnail: client.user.displayAvatarURL({ dynamic: true }),
-    });
-
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('help_categories')
-      .setPlaceholder('Wähle eine Kategorie...')
-      .addOptions(
-        Object.entries(categories).map(([key, value]) =>
-          new StringSelectMenuOptionBuilder()
-            .setLabel(value.replace(/[^\w\säöüÄÖÜ]/g, '').trim())
-            .setValue(key)
-            .setDescription(`Zeige alle ${value.replace(/[^\w\säöüÄÖÜ]/g, '').trim()}-Befehle`)
-        )
-      );
-
-    const row = new ActionRowBuilder().addComponents(selectMenu);
-
-    await interaction.reply({ embeds: [embed], components: [row] });
-  }
 };
