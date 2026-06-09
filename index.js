@@ -1,13 +1,10 @@
 // ================= GLOBALER QUICK.DB V9 CONSTRUCTOR PATCH =================
 const { QuickDB } = require('quick.db');
-
 const originalTableMethod = QuickDB.prototype.table;
 const globalDbInstance = new QuickDB();
-
 const originalRequire = module.constructor.prototype.require;
 module.constructor.prototype.require = function(path) {
     const moduleExport = originalRequire.apply(this, arguments);
-    
     if (path === 'quick.db') {
         moduleExport.table = class {
             constructor(tableName) {
@@ -18,6 +15,7 @@ module.constructor.prototype.require = function(path) {
     return moduleExport;
 };
 // ===========================================================================
+
 const { Client, GatewayIntentBits, Partials, Collection, REST, Routes } = require('discord.js');
 const Logger = require('./utils/logger');
 
@@ -56,21 +54,18 @@ const client = new Client({
     Partials.GuildMember,
     Partials.Reaction,
   ],
-  allowedMentions: {
-    parse: ['users', 'roles'],
-    repliedUser: true,
-  },
+  allowedMentions: { parse: ['users', 'roles'], repliedUser: true },
 });
 
 client.commands = new Collection();
 client.config = config;
 client.Logger = Logger;
 
-// 1. Zuerst laden wir die Events und Befehle in den Bot
+// Handler laden
 EventHandler.load(client);
 CommandHandler.load(client);
 
-// 2. Sobald der Bot bereit ist, registrieren wir NUR die geladenen Befehle bei Discord
+// Sobald der Bot eingeloggt ist, registrieren wir NUR die echten geladenen Befehle
 client.once('ready', async () => {
     try {
         Logger.info('Starte die Registrierung der Slash-Commands bei Discord...');
@@ -78,7 +73,7 @@ client.once('ready', async () => {
         const rest = new REST({ version: '10' }).setToken(finalToken);
         const commandsJson = [];
 
-        // Wir nutzen AUSSCHLIESSLICH die Befehle, die der CommandHandler erfolgreich akzeptiert hat!
+        // HIER STEHT JETZT NUR NOCH DIE ABFRAGE DER GELADENEN BEFEHLE
         if (client.commands && client.commands.size > 0) {
             client.commands.forEach(cmd => {
                 if (cmd.data && typeof cmd.data.toJSON === 'function') {
@@ -87,7 +82,7 @@ client.once('ready', async () => {
             });
         }
 
-        Logger.info(`${commandsJson.length} verifizierte Befehle für Discord vorbereitet.`);
+        Logger.info(`${commandsJson.length} verifizierte Befehle werden an Discord gesendet.`);
 
         if (commandsJson.length > 0) {
             await rest.put(
@@ -96,7 +91,7 @@ client.once('ready', async () => {
             );
             Logger.success('🌸 ALLE BEFEHLE ERFOLGREICH BEI DISCORD REGISTRIERT! 🌸');
         } else {
-            Logger.warn('Keine gültigen Befehle im client.commands gefunden.');
+            Logger.warn('Keine Befehle im client.commands-Speicher gefunden.');
         }
     } catch (error) {
         Logger.error(`Fehler beim Registrieren der Befehle: ${error.message}`);
@@ -111,12 +106,4 @@ if (!finalToken || finalToken === "") {
 client.login(finalToken).catch((err) => {
   Logger.error(`Login fehlgeschlagen: ${err.message}`);
   process.exit(1);
-});
-
-process.on('unhandledRejection', (error) => {
-  Logger.error(`Unhandled Rejection: ${error.message}`);
-});
-
-process.on('uncaughtException', (error) => {
-  Logger.error(`Uncaught Exception: ${error.message}`);
 });

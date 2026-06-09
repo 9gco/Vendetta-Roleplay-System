@@ -1,21 +1,22 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
+    name: 'help',
+    description: 'Zeigt eine Liste aller verfügbaren Befehle an. 🌸',
     data: new SlashCommandBuilder()
         .setName('help')
         .setDescription('Zeigt eine Liste aller verfügbaren Befehle an. 🌸'),
 
     async execute(interaction, client) {
-        const embedColor = client.config?.colors?.sakura || '#FFB7C5';
         const embed = new EmbedBuilder()
-            .setTitle('🌸 Vendetta Roleplay - Hilfemenü')
-            .setDescription('Bot läuft! Tippe ein `/` in den Chat, um alle Befehle zu sehen.')
-            .setColor(embedColor);
-
+            .setTitle('🌸 Vendetta System - Hilfe')
+            .setDescription('Nutze `/`, um alle Befehle deines Servers zu sehen!')
+            .setColor('#FFB7C5');
+        
         if (interaction.reply) {
-            return await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.reply({ embeds: [embed], ephemeral: true });
         } else {
-            return await interaction.channel.send({ embeds: [embed] });
+            await interaction.channel.send({ embeds: [embed] });
         }
     }
 };

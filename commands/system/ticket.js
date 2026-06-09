@@ -1,14 +1,16 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
+    name: 'ticket',
+    description: 'Ticketsystem Hauptbefehl',
     data: new SlashCommandBuilder()
         .setName('ticket')
-        .setDescription('Ticketsystem Befehle')
+        .setDescription('Ticketsystem Hauptbefehl')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-        
+
     async execute(interaction, client) {
         if (interaction.reply) {
-            return await interaction.reply({ content: 'Ticketsystem aktiv!', ephemeral: true });
+            await interaction.reply({ content: 'Ticketsystem bereit.', ephemeral: true });
         }
     }
 };
