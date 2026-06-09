@@ -1,20 +1,29 @@
-// ================= GLOBALER QUICK.DB V9 CONSTRUCTOR PATCH =================
-// Ganz oben einfügen
-const http = require('http');
-http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Bot ist online!');
-}).listen(process.env.PORT || 3000);
-
-// ... der Rest deines Codes ...
+const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const { Player } = require('discord-player');
+const config = require('./config.json');
+
+// 1. Client erstellen
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
+});
+
+// 2. Player HIER initialisieren, NACHDEM der client existiert
 const player = new Player(client);
 
-// Wichtig für YouTube-Suche:
+// 3. Musik-Extractor laden
 async function initPlayer() {
     await player.extractors.loadDefault();
 }
 initPlayer();
+
+// ... (dein restlicher Code wie Event-Handler, Command-Handler etc.)
+
+client.login(config.TOKEN);
 const { QuickDB } = require('quick.db');
 const originalTableMethod = QuickDB.prototype.table;
 const globalDbInstance = new QuickDB();

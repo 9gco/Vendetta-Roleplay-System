@@ -10,8 +10,10 @@ module.exports = {
     async execute(interaction) {
         const player = useMainPlayer();
         const channel = interaction.member.voice.channel;
+        
         if (!channel) return interaction.reply({ content: 'Du bist in keinem Voice-Channel!', ephemeral: true });
 
+        // Sofort "denken" lassen
         await interaction.deferReply();
 
         try {
@@ -21,7 +23,7 @@ module.exports = {
             return interaction.editReply({ content: `🎵 Musik wird geladen: **${res.track.title}**` });
         } catch (e) {
             console.error(e);
-            return interaction.editReply({ content: '❌ Fehler beim Abspielen.' });
+            return interaction.editReply({ content: '❌ Fehler beim Abspielen. (Stelle sicher, dass die URL korrekt ist!)' });
         }
     }
 };
