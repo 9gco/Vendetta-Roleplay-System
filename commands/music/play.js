@@ -1,29 +1,18 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { useMainPlayer } = require('discord-player');
+async execute(interaction) {
+    // 1. Sofort "denken" (verhindert "Die Anwendung reagiert nicht")
+    await interaction.deferReply(); 
 
-module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('play')
-        .setDescription('Spiele einen Song ab')
-        .addStringOption(o => o.setName('song').setDescription('Titel oder Link').setRequired(true)),
+    const player = useMainPlayer();
+    const song = interaction.options.getString('song');
+    const channel = interaction.member.voice.channel;
 
-    async execute(interaction) {
-        const player = useMainPlayer();
-        const channel = interaction.member.voice.channel;
-        
-        if (!channel) return interaction.reply({ content: 'Du bist in keinem Voice-Channel!', ephemeral: true });
+    if (!channel) return interaction.editReply({ content: 'Du bist in keinem Voice-Channel!' });
 
-        // Sofort "denken" lassen
-        await interaction.deferReply();
-
-        try {
-            const res = await player.play(channel, interaction.options.getString('song'), {
-                nodeOptions: { metadata: interaction }
-            });
-            return interaction.editReply({ content: `🎵 Musik wird geladen: **${res.track.title}**` });
-        } catch (e) {
-            console.error(e);
-            return interaction.editReply({ content: '❌ Fehler beim Abspielen. (Stelle sicher, dass die URL korrekt ist!)' });
-        }
+    try {
+        // 2. Suche und spiele
+        const res = await player.play(channel, song, { nodeOptions: { metadata: interaction } });
+        return interaction.editReply({ content: `🎵 Läuft jetzt: **${res.track.title}**` });
+    } catch (e) {
+        return interaction.editReply({ content: '❌ Fehler beim Laden.' });
     }
-};
+}
