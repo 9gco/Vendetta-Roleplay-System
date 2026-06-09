@@ -10,9 +10,9 @@ http.createServer((req, res) => {
 const { Player } = require('discord-player');
 const player = new Player(client);
 
-// Wichtig: Die Extractor-Plugins laden, damit er YouTube/Spotify versteht
+// Wichtig für YouTube-Suche:
 async function initPlayer() {
-  await player.extractors.loadDefault();
+    await player.extractors.loadDefault();
 }
 initPlayer();
 const { QuickDB } = require('quick.db');

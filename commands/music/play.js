@@ -1,35 +1,27 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const { useMainPlayer } = require('discord-player');
 
 module.exports = {
-  name: 'play',
-  description: 'Spiele einen Song ab',
-  data: new SlashCommandBuilder()
-    .setName('play')
-    .setDescription('Spiele einen Song ab')
-    .addStringOption(option => option.setName('song').setDescription('Titel oder Link').setRequired(true)),
+    data: new SlashCommandBuilder()
+        .setName('play')
+        .setDescription('Spiele einen Song ab')
+        .addStringOption(o => o.setName('song').setDescription('Titel oder Link').setRequired(true)),
 
-  async execute(interaction) {
-    const player = useMainPlayer();
-    const song = interaction.options.getString('song');
-    const channel = interaction.member.voice.channel;
+    async execute(interaction) {
+        const player = useMainPlayer();
+        const channel = interaction.member.voice.channel;
+        if (!channel) return interaction.reply({ content: 'Du bist in keinem Voice-Channel!', ephemeral: true });
 
-    if (!channel) return interaction.reply({ content: 'Du musst in einem Voice-Channel sein!', ephemeral: true });
+        await interaction.deferReply();
 
-    // Sofort antworten, damit keine "Unknown interaction" Fehler kommen
-    await interaction.deferReply();
-
-    try {
-      const { track } = await player.play(channel, song, {
-        nodeOptions: {
-          metadata: interaction // Damit wir später auf das Channel-Objekt zugreifen können
+        try {
+            const res = await player.play(channel, interaction.options.getString('song'), {
+                nodeOptions: { metadata: interaction }
+            });
+            return interaction.editReply({ content: `🎵 Musik wird geladen: **${res.track.title}**` });
+        } catch (e) {
+            console.error(e);
+            return interaction.editReply({ content: '❌ Fehler beim Abspielen.' });
         }
-      });
-
-      return interaction.editReply({ content: `🎵 Läuft jetzt: **${track.title}**` });
-    } catch (e) {
-      console.error(e);
-      return interaction.editReply({ content: '❌ Fehler beim Abspielen des Songs.' });
     }
-  }
 };
