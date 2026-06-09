@@ -1,8 +1,15 @@
-const { Client, GatewayIntentBits, Partials } = require('discord.js');
+// 1. Alle Imports ganz oben, nur einmal!
+const { Client, GatewayIntentBits } = require('discord.js');
 const { Player } = require('discord-player');
+const http = require('http');
 const config = require('./config.json');
 
-// 1. Client erstellen
+// 2. Web-Server für Render (damit er nicht abbricht)
+http.createServer((req, res) => {
+  res.end('Bot ist online!');
+}).listen(process.env.PORT || 3000);
+
+// 3. Client initialisieren
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -12,14 +19,19 @@ const client = new Client({
     ]
 });
 
-// 2. Player HIER initialisieren, NACHDEM der client existiert
+// 4. Player initialisieren (NACH client)
 const player = new Player(client);
 
-// 3. Musik-Extractor laden
+// 5. Player-Extractor laden
 async function initPlayer() {
     await player.extractors.loadDefault();
 }
 initPlayer();
+
+// ... HIER kommen deine restlichen Event-Handler und Befehls-Registrierungen ...
+// WICHTIG: Stelle sicher, dass hier NICHT nochmal "const { Client ...} = ..." steht!
+
+client.login(config.TOKEN);
 
 // ... (dein restlicher Code wie Event-Handler, Command-Handler etc.)
 
