@@ -24,19 +24,22 @@ module.constructor.prototype.require = function(path) {
     return moduleExport;
 };
 // ===========================================================================
-const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Partials } = require('discord.js');
+
 let config = {};
-   try {
-       config = require('./config.json');
-   } catch (e) {
-       // Wenn die Datei auf Render fehlt, nutzen wir die Umgebungsvariablen
-       config = {
-           token: process.env.DISCORD_TOKEN,
-           clientId: process.env.CLIENT_ID || "1513627285935231147",
-           guildId: process.env.GUILD_ID || "1513659339662163968",
-           prefix: "!"
-       };
-   }
+try {
+    config = require('./config.json');
+} catch (e) {
+    // Falls absolut keine config.json existiert
+    config = {};
+}
+
+// WASSERDICHTER FALLBACK: Wenn config.token leer oder nicht da ist, nimm process.env
+const finalToken = process.env.DISCORD_TOKEN || config.token;
+config.clientId = process.env.CLIENT_ID || config.clientId || "1513627285935231147";
+config.guildId = process.env.GUILD_ID || config.guildId || "1513659339662163968";
+config.prefix = config.prefix || "!";
+
 const Logger = require('./utils/logger');
 const EventHandler = require('./handlers/eventHandler');
 const CommandHandler = require('./handlers/commandHandler');
@@ -73,7 +76,13 @@ client.Logger = Logger;
 EventHandler.load(client);
 CommandHandler.load(client);
 
-client.login(config.token).catch((err) => {
+// Nutzt jetzt garantiert das Render-Token, falls die config.json leer ist
+if (!finalToken || finalToken === "") {
+  Logger.error("✖ ERROR: Weder in config.json noch in den Render Environment Variablen wurde ein Token gefunden!");
+  process.exit(1);
+}
+
+client.login(finalToken).catch((err) => {
   Logger.error(`Login fehlgeschlagen: ${err.message}`);
   process.exit(1);
 });
