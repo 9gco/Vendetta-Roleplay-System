@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
-// Wir holen Quick.db für das Speichern der Verwarnungen
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -10,7 +9,6 @@ module.exports = {
         .setName('warn')
         .setDescription('Verwaltungssystem für Verwarnungen. 🛡️')
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
-        // UNTERBEFEHL: add
         .addSubcommand(subcommand =>
             subcommand
                 .setName('add')
@@ -18,7 +16,6 @@ module.exports = {
                 .addUserOption(option => option.setName('user').setDescription('Der zu verwarnende User').setRequired(true))
                 .addStringOption(option => option.setName('grund').setDescription('Grund für die Verwarnung').setRequired(false))
         )
-        // UNTERBEFEHL: list
         .addSubcommand(subcommand =>
             subcommand
                 .setName('list')
@@ -33,30 +30,38 @@ module.exports = {
         const guildId = interaction.guild.id;
         
         const embedColor = client.config?.colors?.sakura || '#FFB7C5';
+        const dbKey = `warns_${guildId}_${targetUser.id}`;
 
         // ================= UNTERBEFEHL: ADD =================
         if (sub === 'add') {
             if (targetUser.bot) {
-                return await interaction.reply({ content: '❌ Bots können nicht verworren werden.', ephemeral: true });
+                return await interaction.reply({ content: '❌ Bots können nicht verwarnt werden.', ephemeral: true });
             }
 
-            // Warnung in der Datenbank hochzählen/speichern
-            // Struktur: warns_GUILDID_USERID -> Array von Gründen
-            await db.push(`warns_${guildId}_${targetUser.id}`, {
+            // Datenbank-Typen-Check: Holen & Reparieren falls nötig
+            let history = await db.get(dbKey);
+            if (!Array.isArray(history)) {
+                history = []; // Setzt es zurück, falls es eine Zahl/String aus dem alten System war
+            }
+
+            // Neue Warnung hinzufügen
+            const newWarn = {
                 reason: reason,
                 moderator: interaction.user.tag,
                 date: new Date().toLocaleDateString('de-DE')
-            });
+            };
+            history.push(newWarn);
 
-            const totalWarns = await db.get(`warns_${guildId}_${targetUser.id}`);
+            // Zurück in die DB schreiben
+            await db.set(dbKey, history);
 
             const embed = new EmbedBuilder()
                 .setTitle('🛡️ User verwarnt')
-                .setColor('#FF5555') // Rot für Warnungen
+                .setColor('#FF5555')
                 .setDescription(`Der User ${targetUser} wurde erfolgreich verwarnt.`)
                 .addFields(
                     { name: '👤 Verwarnt von', value: `${interaction.user.tag}`, inline: true },
-                    { name: '📊 Verwarnungen insgesamt', value: `\`${totalWarns.length}\``, inline: true },
+                    { name: '📊 Verwarnungen insgesamt', value: `\`${history.length}\``, inline: true },
                     { name: '📝 Grund', value: reason, inline: false }
                 )
                 .setTimestamp();
@@ -66,7 +71,8 @@ module.exports = {
 
         // ================= UNTERBEFEHL: LIST =================
         if (sub === 'list') {
-            const history = await db.get(`warns_${guildId}_${targetUser.id}`) || [];
+            let history = await db.get(dbKey);
+            if (!Array.isArray(history)) history = [];
 
             if (history.length === 0) {
                 return await interaction.reply({ content: `🌸 ${targetUser.tag} hat aktuell keine Verwarnungen.`, ephemeral: true });
