@@ -1,4 +1,12 @@
 // ================= GLOBALER QUICK.DB V9 CONSTRUCTOR PATCH =================
+// Ganz oben einfügen
+const http = require('http');
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Bot ist online!');
+}).listen(process.env.PORT || 3000);
+
+// ... der Rest deines Codes ...
 const { QuickDB } = require('quick.db');
 const originalTableMethod = QuickDB.prototype.table;
 const globalDbInstance = new QuickDB();
